@@ -26,4 +26,6 @@ interface ProductRepository
     public function findBySlug(string $slug, array $with = []): ?Product;
 
     public function inStock(array $with = []): Builder;
+
+    public function slugExists(string $slug): bool;
 }

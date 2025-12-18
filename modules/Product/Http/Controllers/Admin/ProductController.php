@@ -60,17 +60,18 @@ class ProductController extends BaseController
         return new ProductResource($product);
     }
 
-
     public function destroy(Product $product): JsonResponse
     {
         $this->service->delete($product);
-        return response()->json(['message'=>__('product.messages.deleted')], 204);
+
+        return response()->json(['message' => __('product.messages.deleted')], 200);
     }
 
-    public function getMedia(Product $product,string $collection = 'images'): JsonResponse
+    public function getMedia(Product $product, string $collection = 'images'): JsonResponse
     {
         $media = $this->service->getMedia($product, $collection);
-//        return  response()->json($media,500);
-        return  ProductMediaResource::collection($media)->response()->setStatusCode(200);
+
+        //        return  response()->json($media,500);
+        return ProductMediaResource::collection($media)->response()->setStatusCode(200);
     }
 }

@@ -30,15 +30,29 @@ class CategoryService
             ->when($filterDTO->slug, fn ($q) => $q->where('slug', 'like', "%{$filterDTO->slug}%")
             );
 
-        return DataTables::eloquent($query)->toJson();
+        // Apply sorting from request (sortBy, sortDir) with a whitelist of sortable columns
+        $sortable = [
+            'id', 'name', 'slug', 'created_at', 'updated_at',
+        ];
+        $sortBy = $filterDTO->sortBy;
+        $sortDir = strtolower((string) ($filterDTO->sortDir ?? 'desc')) === 'asc' ? 'asc' : 'desc';
+
+        if ($sortBy !== null && in_array($sortBy, $sortable, true)) {
+            $query->orderBy($sortBy, $sortDir);
+        } else {
+            $query->orderBy('created_at', 'desc');
+        }
+
+        return DataTables::eloquent($query)
+            ->editColumn('name', fn ($row) => $row->name)
+            ->toJson();
     }
 
     public function create(CategoryCreateDTO $attributes): Category
     {
-        $data = $attributes->toArray();
-        $data['slug'] = Str::slug($data['name'], '-');
+        $attributes->slug = Str::slug($attributes->name, '-');
 
-        return $this->repository->create($data);
+        return $this->repository->create($attributes);
 
     }
 
@@ -52,7 +66,7 @@ class CategoryService
         return $this->repository->delete($category);
     }
 
-    public function getOptions()
+    public function getOptions(): JsonResponse
     {
         $query = $this->repository->query()->get(['id', 'name']);
 

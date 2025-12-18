@@ -20,7 +20,7 @@ class ProductUpdateRequest extends FormRequest
 
         return [
             'name' => ['sometimes', 'required', 'string', 'max:255'],
-            'sku' => ['sometimes', 'required', 'string', 'max:255', 'unique:products,sku,'.$productId],
+            'sku' => ['sometimes', 'nullable', 'string', 'max:255', 'unique:products,sku,'.$productId],
             'description' => ['nullable', 'string'],
             'price' => ['sometimes', 'required', 'numeric', 'min:0'],
             'cost' => ['nullable', 'numeric', 'min:0'],

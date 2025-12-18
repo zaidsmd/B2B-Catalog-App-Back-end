@@ -2,6 +2,8 @@
 
 namespace Modules\Product\DTOs;
 
+use Illuminate\Support\Str;
+
 /**
  * @phpstan-type ProductCreateShape array{
  *   name: string,
@@ -22,7 +24,7 @@ class ProductCreateDTO extends BaseDTO
 {
     public string $name;
 
-    public string $sku;
+    public ?string $sku;
 
     public string $slug;
 
@@ -54,6 +56,9 @@ class ProductCreateDTO extends BaseDTO
         $dto->tax = $dto->tax !== null ? (float) $dto->tax : null;
         $dto->category_id = $data['category'] ?? null;
         $dto->quantity = 0;
+        $dto->sku = $dto->sku ?? strtoupper(
+            Str::slug($dto->name, '-').'-'.substr(md5($dto->name), 0, 4)
+        );
 
         return $dto;
     }

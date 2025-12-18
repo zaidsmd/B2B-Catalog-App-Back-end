@@ -43,12 +43,12 @@ class CategoryController extends Controller
 
     public function destroy(Category $category)
     {
-        if ($category->products()->exists()){
+        if ($category->products()->exists()) {
             return response()->json(['message' => __('category.messages.category_has_products')], 422);
         }
         $this->service->delete($category);
 
-        return response()->json(['message'=>__('category.messages.deleted')], 204);
+        return response()->json(['message' => __('category.messages.deleted')], 200);
     }
 
     public function options()

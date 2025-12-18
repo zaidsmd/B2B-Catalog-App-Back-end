@@ -4,7 +4,6 @@ namespace Modules\Product\Services;
 
 use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Str;
 use Modules\Media\Services\MediaService;
 use Modules\Product\Contracts\Repositories\ProductRepository;
 use Modules\Product\DTOs\ProductCreateDTO;
@@ -13,6 +12,7 @@ use Modules\Product\DTOs\ProductUpdateDTO;
 use Modules\Product\Events\ProductCreated;
 use Modules\Product\Events\ProductDeleted;
 use Modules\Product\Events\ProductUpdated;
+use Modules\Product\Models\Category;
 use Modules\Product\Models\Product;
 use Spatie\MediaLibrary\MediaCollections\Models\Collections\MediaCollection;
 use Yajra\DataTables\Facades\DataTables;
@@ -37,6 +37,30 @@ class ProductService
             $query->where('stockable', $filters->stockable);
         }
 
+        // Apply sorting from filters (sortBy, sortDir) with a whitelist of sortable columns
+        $sortable = [
+            'id', 'name', 'price', 'active', 'stockable', 'created_at', 'updated_at', 'sku', 'category', 'category_name',
+        ];
+        $sortBy = $filters->sortBy;
+        $sortDir = strtolower((string) ($filters->sortDir ?? 'desc')) === 'asc' ? 'asc' : 'desc';
+
+        if ($sortBy !== null && in_array($sortBy, $sortable, true)) {
+            // Special handling for sorting by related category name
+            if ($sortBy === 'category' || $sortBy === 'category_name') {
+                $query->orderBy(
+                    Category::query()
+                        ->select('name')
+                        ->whereColumn('categories.id', 'products.category_id'),
+                    $sortDir
+                );
+            } else {
+                $query->orderBy($sortBy, $sortDir);
+            }
+        } else {
+            // Default sort
+            $query->orderBy('created_at', 'desc');
+        }
+
         return DataTables::eloquent($query)
             ->addColumn('category_name', function (Product $product): ?string {
                 return $product->category?->name;
@@ -53,9 +77,11 @@ class ProductService
     public function create(ProductCreateDTO $dto, ?array $image = null): Product
     {
         return DB::transaction(function () use ($dto, $image): Product {
+
             $product = $this->products->create([...$dto->toArray(),
-                'slug' => uniqid(Str::slug($dto->name, '-'), true),
+                'slug' => SlugGenerator::unique($dto->name, fn (string $slug) => $this->products->slugExists($slug)),
             ]);
+
             // Attach image if provided
             if ($image !== null) {
                 $this->media->attachFromTemp($image, $product, 'images');
@@ -97,7 +123,7 @@ class ProductService
         });
     }
 
-    public function getMedia(Product $product,string $collection = 'images'): MediaCollection
+    public function getMedia(Product $product, string $collection = 'images'): MediaCollection
     {
         return $product->getMedia($collection);
     }

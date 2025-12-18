@@ -59,4 +59,9 @@ class EloquentProductRepository implements ProductRepository
 
         return $this->query()->with($with)->where('stock_quantity', '>', 0);
     }
+
+    public function slugExists(string $slug): bool
+    {
+        return $this->model->newQuery()->where('slug', $slug)->exists();
+    }
 }
