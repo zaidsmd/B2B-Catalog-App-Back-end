@@ -3,6 +3,8 @@
 namespace Modules\Supplier\Providers;
 
 use Illuminate\Support\ServiceProvider;
+use Modules\Supplier\Contracts\Repositories\SupplierRepository;
+use Modules\Supplier\Repositories\Eloquent\EloquentSupplierRepository;
 
 class SupplierServiceProvider extends ServiceProvider
 {
@@ -11,7 +13,7 @@ class SupplierServiceProvider extends ServiceProvider
      */
     public function register(): void
     {
-        //
+        $this->app->bind(SupplierRepository::class, EloquentSupplierRepository::class);
     }
 
     /**
