@@ -70,6 +70,11 @@ class AuthController extends Controller
         ]);
     }
 
+    public function csrf()
+    {
+        return csrf_token();
+    }
+
     protected function guard(): StatefulGuard
     {
         return Auth::guard();
