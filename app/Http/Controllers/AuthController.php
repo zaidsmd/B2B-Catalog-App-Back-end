@@ -5,7 +5,6 @@ namespace App\Http\Controllers;
 use App\Http\Requests\Auth\LoginRequest;
 use App\Http\Requests\Auth\RegisterRequest;
 use App\Models\User;
-use Illuminate\Contracts\Auth\StatefulGuard;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -53,10 +52,20 @@ class AuthController extends Controller
 
     public function logout(Request $request): JsonResponse
     {
-        $this->guard()->logout();
+        $user = $request->user();
 
-        $request->session()->invalidate();
-        $request->session()->regenerateToken();
+        if ($user && $user->currentAccessToken()) {
+            /** @var \Laravel\Sanctum\PersonalAccessToken $token */
+            $token = $user->currentAccessToken();
+            $token->delete();
+        }
+
+        Auth::guard('web')->logout();
+
+        if ($request->hasSession()) {
+            $request->session()->invalidate();
+            $request->session()->regenerateToken();
+        }
 
         return response()->json([
             'message' => 'Logged out.',
@@ -70,12 +79,33 @@ class AuthController extends Controller
         ]);
     }
 
+    public function verify(Request $request): JsonResponse
+    {
+        return response()->json([
+            'message' => 'Token is valid.',
+            'user' => $request->user(),
+        ]);
+    }
+
+    public function refresh(Request $request): JsonResponse
+    {
+        /** @var \App\Models\User $user */
+        $user = $request->user();
+
+        $user->tokens()->where('id', $user->currentAccessToken()->id)->delete();
+
+        return response()->json([
+            'user' => $user,
+            'token' => $user->createToken('API Token')->plainTextToken,
+        ]);
+    }
+
     public function csrf()
     {
         return csrf_token();
     }
 
-    protected function guard(): StatefulGuard
+    protected function guard(): mixed
     {
         return Auth::guard();
     }

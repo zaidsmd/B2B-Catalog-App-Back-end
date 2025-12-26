@@ -13,6 +13,11 @@ return Application::configure(basePath: dirname(__DIR__))
     )
     ->withMiddleware(function (Middleware $middleware): void {
         $middleware->statefulApi();
+        $middleware->alias(['VerifyHmac' => \App\Http\Middleware\VerifyHmacMiddleware::class]);
+        $middleware->api()->alias([
+            'api.web' => \App\Http\Middleware\WebAppMiddleware::class,
+            'api.mobile' => \App\Http\Middleware\MobileSourceMiddleware::class,
+        ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
         //

@@ -13,5 +13,7 @@ Route::prefix('auth')->group(function (): void {
     Route::middleware('auth:sanctum')->group(function (): void {
         Route::post('logout', [AuthController::class, 'logout'])->name('auth.logout');
         Route::get('me', [AuthController::class, 'me'])->name('auth.me');
+        Route::get('verify', [AuthController::class, 'verify'])->name('auth.verify');
+        Route::post('refresh', [AuthController::class, 'refresh'])->name('auth.refresh');
     });
 });
