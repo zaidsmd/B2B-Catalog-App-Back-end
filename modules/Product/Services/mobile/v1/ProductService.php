@@ -6,7 +6,7 @@ use Illuminate\Http\JsonResponse;
 use Modules\Media\Services\MediaService;
 use Modules\Product\Contracts\Repositories\ProductRepository;
 use Modules\Product\DTOs\ProductFilterDTO;
-use Modules\Product\Http\Resources\Mobile\V1\ProductMobileResource;
+use Modules\Product\Http\Resources\mobile\v1\ProductMobileResource;
 use Modules\Product\Models\Category;
 use Modules\Product\Models\Product;
 use Spatie\MediaLibrary\MediaCollections\Models\Collections\MediaCollection;
